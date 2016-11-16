@@ -1,0 +1,6 @@
+[package]
+name = "reference-iterator"
+version = "0.1.0"
+authors = ["Jordan MacDonald <jordan@wastedintelligence.com>"]
+
+[dependencies]
