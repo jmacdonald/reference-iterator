@@ -1,10 +1,10 @@
-struct TokenIteratorData {
+struct TokenSet {
     data: String
 }
 
-impl TokenIteratorData {
-    pub fn new(data: String) -> TokenIteratorData {
-        TokenIteratorData{ data: data }
+impl TokenSet {
+    pub fn new(data: String) -> TokenSet {
+        TokenSet{ data: data }
     }
 
     pub fn iter<'a>(&'a self) -> TokenIterator<'a> {
@@ -62,9 +62,10 @@ impl<'a> Iterator for TokenIterator<'a> {
 }
 
 fn main() {
-    let iterator = TokenIteratorData::new("iterator data".to_string());
+    let iterator = TokenSet::new("iterator data".to_string());
+    let tokens: Vec<&str> = iterator.iter().collect();
 
-    for token in iterator.iter() {
+    for token in tokens.iter() {
         println!("{}", token);
     }
 }
