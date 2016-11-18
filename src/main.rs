@@ -2,12 +2,12 @@ struct TokenIteratorData {
     data: String
 }
 
-impl<'a> TokenIteratorData {
+impl TokenIteratorData {
     pub fn new(data: String) -> TokenIteratorData {
         TokenIteratorData{ data: data }
     }
 
-    pub fn iter(&'a self) -> TokenIterator<'a> {
+    pub fn iter<'a>(&'a self) -> TokenIterator<'a> {
         TokenIterator::new(&self.data)
     }
 }
