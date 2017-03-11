@@ -1,17 +1,3 @@
-struct TokenSet {
-    data: String
-}
-
-impl TokenSet {
-    pub fn new(data: String) -> TokenSet {
-        TokenSet{ data: data }
-    }
-
-    pub fn iter<'a>(&'a self) -> TokenIterator<'a> {
-        TokenIterator::new(&self.data)
-    }
-}
-
 struct TokenIterator<'a> {
     data: &'a str,
     token_start: usize,
@@ -20,10 +6,10 @@ struct TokenIterator<'a> {
 
 impl<'a> TokenIterator<'a> {
     pub fn new(data: &'a str) -> TokenIterator<'a> {
-        TokenIterator{
+        TokenIterator {
             data: data,
             token_start: 0,
-            token_end: 0
+            token_end: 0,
         }
     }
 }
@@ -61,11 +47,20 @@ impl<'a> Iterator for TokenIterator<'a> {
     }
 }
 
-fn main() {
-    let iterator = TokenSet::new("iterator data".to_string());
-    let tokens: Vec<&str> = iterator.iter().collect();
+trait Tokenize {
+    fn tokenize(&self) -> TokenIterator;
+}
 
-    for token in tokens.iter() {
+impl Tokenize for str {
+    fn tokenize(&self) -> TokenIterator {
+        TokenIterator::new(self)
+    }
+}
+
+fn main() {
+    let my_string = "iterator data for tokenizing";
+    let vec: Vec<_> = my_string.tokenize().collect();
+    for token in vec {
         println!("{}", token);
     }
 }
