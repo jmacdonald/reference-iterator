@@ -1,71 +1,106 @@
-struct TokenSet {
-    data: String
-}
-
-impl TokenSet {
-    pub fn new(data: String) -> TokenSet {
-        TokenSet{ data: data }
-    }
-
-    pub fn iter<'a>(&'a self) -> TokenIterator<'a> {
-        TokenIterator::new(&self.data)
-    }
-}
-
-struct TokenIterator<'a> {
-    data: &'a str,
-    token_start: usize,
-    token_end: usize,
-}
-
-impl<'a> TokenIterator<'a> {
-    pub fn new(data: &'a str) -> TokenIterator<'a> {
-        TokenIterator{
-            data: data,
-            token_start: 0,
-            token_end: 0
+mod tokenize {
+    pub fn tokenize(data: &str) -> Iter {
+        Iter {
+            data: Some(data),
         }
     }
-}
 
-impl<'a> Iterator for TokenIterator<'a> {
-    type Item = &'a str;
+    pub struct Iter<'a> {
+        data: Option<&'a str>,
+    }
 
-    fn next(&mut self) -> Option<Self::Item> {
-        // Move beyond the previous token, if any.
-        self.token_start = self.token_end;
+    impl<'a> Iterator for Iter<'a> {
+        type Item = &'a str;
 
-        // Try to find a non-whitespace character that
-        // will denote the beginning of another token.
-        let next_char_index = self.data[self.token_start..]
-            .char_indices()
-            .find(|&(_, c)| !c.is_whitespace())
-            .map(|(i, _)| i + self.token_start);
+        fn next(&mut self) -> Option<Self::Item> {
+            if self.data.is_none() { return None; }
+            let d = self.data.take().unwrap();
 
-        if let Some(start_index) = next_char_index {
-            // We've found the start of another token.
-            self.token_start = start_index;
-
-            // Find the end of the token, whether that
-            // is whitespace or the end of the string.
-            self.token_end = self.data[self.token_start..]
+            // Try to find a non-whitespace character that
+            // will denote the beginning of another token.
+            let next_char_index = d
                 .char_indices()
-                .find(|&(_, c)| c.is_whitespace())
-                .map(|(i, _)| i + self.token_start)
-                .unwrap_or(self.data.len());
+                .find(|&(_, c)| !c.is_whitespace())
+                .map(|(i, _)| i);
 
-            Some(&self.data[self.token_start..self.token_end])
-        } else {
-            None
+            if let Some(start_index) = next_char_index {
+                // We've found the start of another token.
+                let (_, d) = d.split_at(start_index);
+
+                // Find the end of the token, whether that
+                // is whitespace or the end of the string.
+                let end_index = d
+                    .char_indices()
+                    .find(|&(_, c)| c.is_whitespace())
+                    .map(|(i, _)| i)
+                    .unwrap_or(d.len());
+
+                let (ret, d) = d.split_at(end_index);
+                self.data = Some(d);
+                Some(ret)
+            } else {
+                None
+            }
+        }
+    }
+
+    pub fn tokenize_mut(data: &mut str) -> IterMut {
+        IterMut {
+            data: Some(data),
+        }
+    }
+
+    pub struct IterMut<'a> {
+        data: Option<&'a mut str>,
+    }
+
+    impl<'a> Iterator for IterMut<'a> {
+        type Item = &'a mut str;
+
+        fn next(&mut self) -> Option<Self::Item> {
+            if self.data.is_none() { return None; }
+            let d = self.data.take().unwrap();
+
+            // Try to find a non-whitespace character that
+            // will denote the beginning of another token.
+            let next_char_index = d
+                .char_indices()
+                .find(|&(_, c)| !c.is_whitespace())
+                .map(|(i, _)| i);
+
+            if let Some(start_index) = next_char_index {
+                // We've found the start of another token.
+                let (_, d) = d.split_at_mut(start_index);
+
+                // Find the end of the token, whether that
+                // is whitespace or the end of the string.
+                let end_index = d
+                    .char_indices()
+                    .find(|&(_, c)| c.is_whitespace())
+                    .map(|(i, _)| i)
+                    .unwrap_or(d.len());
+
+                let (ret, d) = d.split_at_mut(end_index);
+                self.data = Some(d);
+                Some(ret)
+            } else {
+                None
+            }
         }
     }
 }
 
 fn main() {
-    let iterator = TokenSet::new("iterator data".to_string());
-    let tokens: Vec<&str> = iterator.iter().collect();
+    let tokens: Vec<&str> = tokenize::tokenize("iterator data").collect();
+    for token in tokens {
+        println!("{}", token);
+    }
 
-    for token in tokens.iter() {
+    let mut string = "mutable iterator data".to_string();
+    let tokens: Vec<&mut str> = tokenize::tokenize_mut(&mut string).collect();
+    for token in tokens {
+        use std::ascii::AsciiExt;
+        token.make_ascii_uppercase();
         println!("{}", token);
     }
 }
